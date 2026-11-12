@@ -1,256 +1,214 @@
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
-import { ChevronDown, Download, Github, Linkedin, Mail, Phone } from "lucide-react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Download,
+  FolderGit2,
+  Mail,
+  Github,
+  Linkedin,
+  ArrowRight,
+  Server,
+  Copy,
+  Check
+} from "lucide-react";
+import { personalInfo } from "@/data/portfolioData";
 
-/* ── Canvas: stars + shooting stars ── */
-function StarField() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    resize();
-    window.addEventListener("resize", resize);
+export default function HeroSection({ id }) {
+  const [copied, setCopied] = useState(false);
 
-    const stars = Array.from({ length: 250 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 1.4 + 0.2,
-      a: Math.random(),
-      speed: Math.random() * 0.005 + 0.001,
-    }));
-
-    const shooters = [];
-    const spawnShooter = () => {
-      shooters.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height * 0.5,
-        len: Math.random() * 120 + 60,
-        speed: Math.random() * 8 + 6,
-        angle: Math.PI / 4,
-        alpha: 1,
-        trail: [],
-      });
-    };
-    const shootInterval = setInterval(spawnShooter, 3000);
-
-    let id;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      stars.forEach(s => {
-        s.a += s.speed; if (s.a > 1 || s.a < 0) s.speed *= -1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${s.a * 0.8})`;
-        ctx.fill();
-      });
-      for (let i = shooters.length - 1; i >= 0; i--) {
-        const s = shooters[i];
-        s.x += Math.cos(s.angle) * s.speed;
-        s.y += Math.sin(s.angle) * s.speed;
-        s.alpha -= 0.015;
-        const grad = ctx.createLinearGradient(s.x, s.y, s.x - Math.cos(s.angle) * s.len, s.y - Math.sin(s.angle) * s.len);
-        grad.addColorStop(0, `rgba(200,170,255,${s.alpha})`);
-        grad.addColorStop(1, "transparent");
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x - Math.cos(s.angle) * s.len, s.y - Math.sin(s.angle) * s.len);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        if (s.alpha <= 0) shooters.splice(i, 1);
-      }
-      id = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => { cancelAnimationFrame(id); clearInterval(shootInterval); window.removeEventListener("resize", resize); };
-  }, []);
-  return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none" />;
-}
-
-/* ── Typewriter ── */
-// const WORDS = ["Full Stack Developer", "Backend Developer", "MERN Specialist", "Web3 Builder", "API Architect"];
-const WORDS = [
-  "Full Stack Engineer",
-  "Scalable Backend Developer",
-  "MERN Ecosystem Specialist",
-  "Web3 Infrastructure Builder",
-  "AI Workflow Integrator"
-];
-function Typewriter() {
-  const [wIdx, setWIdx] = useState(0);
-  const [text, setText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    const word = WORDS[wIdx];
-    let timeout;
-    if (!deleting && text.length < word.length) {
-      timeout = setTimeout(() => setText(word.slice(0, text.length + 1)), 80);
-    } else if (!deleting && text.length === word.length) {
-      timeout = setTimeout(() => setDeleting(true), 1800);
-    } else if (deleting && text.length > 0) {
-      timeout = setTimeout(() => setText(text.slice(0, -1)), 45);
-    } else if (deleting && text.length === 0) {
-      setDeleting(false);
-      setWIdx((wIdx + 1) % WORDS.length);
+  const scrollTo = (targetId) => {
+    const el = document.getElementById(targetId);
+    if (el) {
+      const navOffset = 70;
+      const pos = el.getBoundingClientRect().top + window.pageYOffset - navOffset;
+      window.scrollTo({ top: pos, behavior: "smooth" });
     }
-    return () => clearTimeout(timeout);
-  }, [text, deleting, wIdx]);
+  };
 
-  return (
-    <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg,#c084fc 0%,#818cf8 50%,#38bdf8 100%)" }}>
-      {text}<span className="animate-pulse">|</span>
-    </span>
-  );
-}
-
-/* ── Magnetic Social Button ── */
-function MagneticBtn({ icon: Icon, label, href }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 300, damping: 20 });
-  const sy = useSpring(y, { stiffness: 300, damping: 20 });
-
-  const handleMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    x.set((e.clientX - cx) * 0.4);
-    y.set((e.clientY - cy) * 0.4);
+  const copyEmail = () => {
+    navigator.clipboard.writeText(personalInfo.email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <motion.a
-      href={href} target="_blank" rel="noopener noreferrer" title={label}
-      style={{ x: sx, y: sy }}
-      onMouseMove={handleMove}
-      onMouseLeave={() => { x.set(0); y.set(0); }}
-      whileHover={{ scale: 1.15 }}
-      className="p-3 rounded-xl border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-purple-400 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-colors duration-300"
+    <section
+      id={id || "home"}
+      className="relative min-h-[85vh] flex items-center justify-center pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-[#07090e]"
     >
-      <Icon className="w-5 h-5" />
-    </motion.a>
-  );
-}
+      {/* Background ambient lighting */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 right-1/4 translate-x-1/3 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none" />
 
-export default function HeroSection({ id }) {
-  return (
-    <section id={id || "home"} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#010409] scroll-mt-14">
-      <StarField />
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="flex flex-col items-center text-center">
+          {/* Availability Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-emerald-500/30 text-xs font-medium text-slate-300 mb-6 backdrop-blur-md shadow-sm"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-emerald-400 font-mono text-[11px] uppercase tracking-wider">
+              Status
+            </span>
+            <span className="text-slate-300 font-normal">
+              {personalInfo.availabilityStatus}
+            </span>
+          </motion.div>
 
-      {/* Ambient glows */}
-      <motion.div className="absolute top-[15%] left-[25%] w-[600px] h-[600px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(88,28,135,0.5) 0%, transparent 65%)" }}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5], x: [0, 30, 0], y: [0, -20, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute bottom-[5%] right-[15%] w-[450px] h-[450px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(79,70,229,0.35) 0%, transparent 65%)" }}
-        animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.8, 0.3] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }} />
-      <motion.div className="absolute top-[50%] right-[30%] w-[350px] h-[350px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 65%)" }}
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 5 }} />
+          {/* Small Introduction */}
+          <motion.span
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-xs font-semibold uppercase tracking-[0.25em] text-purple-400 font-mono mb-2"
+          >
+            HELLO, I'M
+          </motion.span>
 
-      {/* Floating particles */}
-      {Array.from({ length: 12 }).map((_, i) => (
-        <motion.div key={i}
-          className="absolute w-1 h-1 rounded-full bg-purple-400/40 pointer-events-none"
-          style={{ left: `${10 + (i * 7.5)}%`, top: `${20 + (i % 5) * 15}%` }}
-          animate={{ y: [0, -30, 0], opacity: [0.2, 0.8, 0.2] }}
-          transition={{ duration: 3 + i * 0.4, repeat: Infinity, delay: i * 0.3 }} />
-      ))}
-
-      <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-        {/* Badge */}
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 mb-6 backdrop-blur-sm">
-            <motion.span className="w-2 h-2 rounded-full bg-emerald-400"
-              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }} />
-            <span className="text-purple-300 text-sm font-medium tracking-wide">Open to opportunities</span>
-          </div>
-        </motion.div>
-
-        {/* Name */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4 leading-[1.1]">
-            <motion.span className="text-white block"
-              initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.9, delay: 0.2 }}>
-              Bharath Kumar
-            </motion.span>
-            <motion.span
-              className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(135deg,#c084fc 0%,#818cf8 50%,#38bdf8 100%)" }}
-              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.9, delay: 0.35 }}>
+          {/* Main Name Heading (Centered, with Panuganti block below) */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white mb-5 leading-[1.1] text-center"
+          >
+            <span className="block">Bharath Kumar</span>
+            <span className="block bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">
               Panuganti
-            </motion.span>
-          </h1>
-        </motion.div>
+            </span>
+          </motion.h1>
 
-        {/* Typewriter role */}
-        <motion.div className="text-2xl sm:text-3xl font-semibold mb-5 h-10"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-          <Typewriter />
-        </motion.div>
+          {/* Professional Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-wrap items-center justify-center gap-3 text-xl sm:text-2xl font-semibold text-slate-200 mb-5"
+          >
+            <Server className="w-5 h-5 text-purple-400 shrink-0" />
+            <span>{personalInfo.headline}</span>
+            <span className="text-xs font-normal px-2.5 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-300">
+              MERN & Cloud
+            </span>
+          </motion.div>
 
-        <motion.p
-          className="text-base sm:text-lg text-[#8b949e] max-w-2xl mx-auto mb-8 leading-relaxed"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}>
-          Crafting scalable MERN applications, RESTful APIs, and Web3 solutions with 30% faster development cycles.
-        </motion.p>
+          {/* Supporting Text */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="text-slate-300 text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-8 text-center"
+          >
+            {personalInfo.tagline}
+          </motion.p>
 
-        {/* CTA Buttons */}
-        <motion.div className="flex flex-wrap items-center justify-center gap-4 mb-8"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}>
-          <motion.a href="https://mail.google.com/mail/?view=cm&fs=1&to=bharathpanuganti1@gmail.com"
-            whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(124,58,237,0.5)" }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 px-7 py-3 font-semibold rounded-xl text-white"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-            <Mail className="w-4 h-4" /> Get in Touch
-          </motion.a>
-          <motion.a href="/Resume%20(1).pdf" download="Bharath_Resume.pdf"
-            whileHover={{ scale: 1.05, borderColor: "rgba(139,92,246,0.6)" }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 px-7 py-3 border border-[#30363d] text-[#c9d1d9] font-semibold rounded-xl bg-[#161b22] transition-colors duration-300">
-            <Download className="w-4 h-4" /> Download Resume
-          </motion.a>
-          <motion.a href="tel:+919642980211"
-            whileHover={{ scale: 1.05, borderColor: "rgba(139,92,246,0.6)" }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 px-7 py-3 border border-[#30363d] text-[#c9d1d9] font-semibold rounded-xl bg-[#161b22] transition-colors duration-300">
-            <Phone className="w-4 h-4" /> Call Me
-          </motion.a>
-        </motion.div>
+          {/* Technology Highlights */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-2xl mx-auto"
+          >
+            <span className="text-xs font-mono text-slate-500 mr-1 uppercase tracking-wider">
+              Core Stack:
+            </span>
+            {personalInfo.techHighlights.map((tech) => (
+              <span
+                key={tech}
+                className="px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-[#111726] border border-white/[0.08] text-slate-300 hover:border-purple-500/40 hover:text-white transition-colors"
+              >
+                {tech}
+              </span>
+            ))}
+          </motion.div>
 
-        {/* Social links */}
-        <motion.div className="flex items-center justify-center gap-5"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
-          {[
-            { icon: Github, label: "GitHub", href: "https://github.com/panuganti0211" },
-            { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/panuganti-bharath/" },
-            { icon: Mail, label: "Email", href: "https://mail.google.com/mail/?view=cm&fs=1&to=bharathpanuganti1@gmail.com" },
-          ].map((s) => <MagneticBtn key={s.label} {...s} />)}
-        </motion.div>
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="flex flex-wrap items-center justify-center gap-3 mb-10 w-full"
+          >
+            <button
+              onClick={() => scrollTo("projects")}
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-500 hover:via-indigo-500 hover:to-sky-500 text-white font-medium text-sm shadow-lg shadow-purple-900/30 transition-all duration-300 hover:shadow-purple-600/40"
+            >
+              <FolderGit2 className="w-4 h-4" />
+              <span>View My Projects</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <a
+              href={personalInfo.resumeUrl}
+              download={personalInfo.resumeDownloadName}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#111726] hover:bg-[#161f33] border border-white/[0.1] hover:border-purple-500/40 text-slate-200 hover:text-white font-medium text-sm transition-all duration-300 shadow-sm"
+            >
+              <Download className="w-4 h-4 text-purple-400" />
+              <span>Download Resume</span>
+            </a>
+
+            <button
+              onClick={() => scrollTo("contact")}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-transparent hover:bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.16] text-slate-300 hover:text-white font-medium text-sm transition-all"
+            >
+              <Mail className="w-4 h-4" />
+              <span>Get In Touch</span>
+            </button>
+          </motion.div>
+
+          {/* Social Links & Direct Copy */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-wrap items-center justify-center gap-4 pt-6 border-t border-white/[0.06] w-full max-w-xl mx-auto"
+          >
+            <span className="text-xs font-mono text-slate-500 uppercase tracking-wider">
+              Connect:
+            </span>
+            <div className="flex items-center gap-2.5">
+              <a
+                href={personalInfo.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e1322] border border-white/[0.08] text-slate-400 hover:text-white hover:border-white/[0.2] text-xs font-mono transition-all"
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>GitHub</span>
+              </a>
+              <a
+                href={personalInfo.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e1322] border border-white/[0.08] text-slate-400 hover:text-white hover:border-white/[0.2] text-xs font-mono transition-all"
+              >
+                <Linkedin className="w-3.5 h-3.5" />
+                <span>LinkedIn</span>
+              </a>
+              <button
+                onClick={copyEmail}
+                title="Copy email to clipboard"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e1322] border border-white/[0.08] text-slate-400 hover:text-purple-300 hover:border-purple-500/30 text-xs font-mono transition-all"
+              >
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+                <span>{copied ? "Copied!" : "Copy Email"}</span>
+              </button>
+            </div>
+          </motion.div>
+        </div>
       </div>
-
-      {/* Scroll cue */}
-      <motion.div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
-        animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-        <span className="text-[#484f58] text-xs tracking-widest uppercase">Scroll</span>
-        <ChevronDown className="w-4 h-4 text-[#484f58]" />
-      </motion.div>
     </section>
   );
 }

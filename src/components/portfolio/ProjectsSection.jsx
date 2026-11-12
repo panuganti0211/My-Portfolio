@@ -1,202 +1,213 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Shield, RefreshCw, Bot, Lock, Code, ExternalLink, ChevronRight } from "lucide-react";
-
-// Richer project shape: title, description, tech[], tag, uptime, link or github/liveUrl, highlights[].
-const projects = [
-  {
-    title: "Web3 Automated Trading Bot",
-    description: "Backend-driven automated trading system that monitors real-time crypto prices and executes token swaps on Raydium DEX pools. Built for high uptime during volatile markets with a swap queue, retry logic, and exponential backoff.",
-    tech: ["Node.js", "MongoDB", "Solana Web3.js", "Raydium SDK", "JWT", "REST API"],
-    color: "#c084fc",
-    glow: "rgba(192,132,252,0.2)",
-    tag: "Web3 / DeFi",
-    uptime: "99.9%",
-    link: "https://github.com/yourusername/repo-name",
-    highlights: [
-      { icon: Layers, label: "Architecture", text: "Backend-driven automated trading system monitoring real-time crypto prices for token swaps on Raydium DEX pools." },
-      { icon: RefreshCw, label: "Concurrency", text: "Swap queue with retry logic and exponential backoff — ensuring 99.9% uptime during high-volatility market swings." },
-      { icon: Shield, label: "Security", text: "Secure wallet management, JWT authentication with role-based access control for admin/sub-admin permissions." },
-      { icon: Code, label: "Data pipeline", text: "MongoDB for trade history and config; scheduled jobs for price feeds and health checks." },
-    ],
-  },
-  {
-    title: "Full-Stack App with Telegram Bot",
-    description: "Full-stack application with a Telegram bot for real-time user notifications and automated interactions. Includes RESTful APIs for authentication, environment-based config, and a simple admin dashboard for managing users and bot settings.",
-    tech: ["Node.js", "Express.js", "MongoDB", "Telegram API", "JWT", "REST"],
-    color: "#38bdf8",
-    glow: "rgba(56,189,248,0.2)",
-    tag: "Full Stack",
-    uptime: "Real-time",
-    link: "https://github.com/yourusername/another-repo",
-    highlights: [
-      { icon: Bot, label: "Integration", text: "Telegram bot for real-time user notifications, commands, and automated replies with webhook handling." },
-      { icon: Lock, label: "Security", text: "RESTful APIs for secure authentication (Login/Signup), JWT tokens, and managed environment variables for deployment." },
-      { icon: Layers, label: "Backend", text: "Express server with MongoDB models for users and audit logs; role-based access for admin actions." },
-    ],
-  },
-  {
-    title: "Portfolio & Project Showcase",
-    description: "Single-page portfolio with dark theme, smooth scroll sections, and reusable UI components. Built to showcase projects, skills, experience, and contact info with a responsive layout and light animations.",
-    tech: ["React", "Vite", "Tailwind CSS", "Framer Motion"],
-    color: "#22c55e",
-    glow: "rgba(34,197,94,0.2)",
-    tag: "Frontend",
-    uptime: "Live",
-    link: "https://github.com/yourusername/portfolio",
-    highlights: [
-      { icon: Code, label: "Stack", text: "React + Vite for fast builds; Tailwind for styling; Framer Motion for section and card animations." },
-      { icon: Layers, label: "Sections", text: "Hero, skills, experience, projects with expandable details, education, and contact with clear CTAs." },
-      { icon: Shield, label: "Maintainability", text: "Structured components and a single projects array so adding or editing projects is straightforward." },
-    ],
-  },
-];
+import {
+  FolderGit2,
+  ExternalLink,
+  Github,
+  CheckCircle2,
+  ArrowRight
+} from "lucide-react";
+import { projects } from "@/data/portfolioData";
 
 export default function ProjectsSection({ id }) {
-  const [active, setActive] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const filterTabs = [
+    { id: "all", label: "All Projects" },
+    { id: "backend", label: "Backend & APIs" },
+    { id: "fullstack", label: "Full-Stack MERN" }
+  ];
+
+  const filteredProjects = projects.filter((project) => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "backend") {
+      return (
+        project.category.toLowerCase().includes("backend") ||
+        project.category.toLowerCase().includes("api")
+      );
+    }
+    if (activeFilter === "fullstack") {
+      return (
+        project.category.toLowerCase().includes("full-stack") ||
+        project.category.toLowerCase().includes("mern") ||
+        project.category.toLowerCase().includes("web")
+      );
+    }
+    return true;
+  });
 
   return (
-    <section id={id || "projects"} className="py-16 md:py-20 bg-[#0d1117] relative overflow-hidden scroll-mt-14">
-      <motion.div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 70% 40%, rgba(88,28,135,0.1) 0%, transparent 60%)" }}
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 7, repeat: Infinity }} />
+    <section
+      id={id || "projects"}
+      className="py-20 md:py-28 bg-[#090d16] relative overflow-hidden border-t border-white/[0.06] scroll-mt-14"
+    >
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-purple-600/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[350px] bg-cyan-600/5 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-5xl mx-auto px-6 relative z-10">
-        <motion.div className="text-center mb-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}>
-          <motion.span
-            className="text-purple-400 text-sm font-semibold tracking-widest uppercase mb-3 block"
-            initial={{ letterSpacing: "0.1em" }}
-            whileInView={{ letterSpacing: "0.3em" }}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1 }}>
-            Portfolio
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl font-bold text-white">Key Projects</h2>
-        </motion.div>
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-mono uppercase tracking-widest mb-3"
+          >
+            <FolderGit2 className="w-3.5 h-3.5" />
+            <span>Featured Engineering</span>
+          </motion.div>
 
-        <div className="space-y-6">
-          {projects.map((project, i) => (
-            <motion.div key={project.title}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: i * 0.15 }}
-              onClick={() => setActive(active === i ? null : i)}
-              className="group relative rounded-2xl border border-[#21262d] bg-[#161b22] overflow-hidden cursor-pointer transition-all duration-500"
-              whileHover={{ boxShadow: `0 0 60px ${project.glow}` }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4"
+          >
+            Featured Projects
+          </motion.h2>
 
-              {/* Animated border gradient on hover */}
-              <motion.div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{ background: `linear-gradient(135deg, ${project.glow} 0%, transparent 50%)` }} />
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-slate-400 text-base leading-relaxed"
+          >
+            Production web platforms, scalable RESTful APIs, and fintech integrations designed for performance, security, and real-world utility.
+          </motion.p>
+        </div>
 
-              {/* Top shimmer sweep */}
-              <motion.div
-                className="absolute top-0 left-[-100%] w-full h-0.5 opacity-0 group-hover:opacity-100"
-                style={{ background: `linear-gradient(90deg, transparent, ${project.color}, transparent)` }}
-                animate={{ left: ["-100%", "200%"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }} />
-
-              <div className="p-6 md:p-8 relative z-10">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full border"
-                        style={{ color: project.color, borderColor: `${project.color}40`, background: `${project.color}10` }}>
-                        {project.tag}
-                      </span>
-                      <span className="text-xs text-[#8b949e] border border-[#21262d] px-2.5 py-1 rounded-full">
-                        ⚡ {project.uptime}
-                      </span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white">{project.title}</h3>
-                    {(project.description || project.subtitle) && (
-                      <p className="text-[#8b949e] text-sm mt-2 leading-relaxed max-w-2xl">
-                        {project.description || project.subtitle}
-                      </p>
-                    )}
-                    {project.tech && project.tech.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {project.tech.map((t) => (
-                          <span
-                            key={t}
-                            className="text-xs px-2.5 py-1 rounded-md border border-[#21262d] bg-[#0d1117] text-[#c9d1d9]"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-4">
-                    {project.link && (
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-lg border border-[#21262d] bg-[#0d1117] hover:border-[#30363d] transition-colors"
-                        style={{ color: project.color }}
-                        title="View project"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                      </a>
-                    )}
-                    <motion.div
-                    animate={{ rotate: active === i ? 90 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="p-2 rounded-lg border border-[#21262d] bg-[#0d1117] shrink-0 ml-4"
-                    style={{ color: active === i ? project.color : "#8b949e" }}>
-                      <ChevronRight className="w-5 h-5" />
-                    </motion.div>
-                  </div>
-                </div>
-
-                {/* Expandable highlights */}
-                <AnimatePresence>
-                  {active === i && (
-                    <motion.div
-                      key="content"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: "easeInOut" }}
-                      className="overflow-hidden">
-                      <p className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider mt-6 pt-6 border-t border-[#21262d]">
-                        Key details · {project.highlights.length} points
-                      </p>
-                      <div className="mt-4 grid gap-4">
-                        {project.highlights.map((h, hi) => {
-                          const HIcon = h.icon;
-                          return (
-                            <motion.div key={h.label}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: hi * 0.1 }}
-                              className="flex gap-4 p-4 rounded-xl bg-[#0d1117] border border-[#21262d]">
-                              <div className="p-2 rounded-lg shrink-0 h-fit"
-                                style={{ background: `${project.color}15` }}>
-                                <HIcon className="w-4 h-4" style={{ color: project.color }} />
-                              </div>
-                              <div>
-                                <span className="text-white font-semibold text-sm">{h.label}</span>
-                                <p className="text-[#8b949e] text-sm mt-0.5 leading-relaxed">{h.text}</p>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
+        {/* Filter Pills */}
+        <div className="flex items-center justify-center gap-2 mb-12">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveFilter(tab.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                activeFilter === tab.id
+                  ? "bg-purple-600 text-white shadow-sm shadow-purple-600/30 border border-purple-400/40"
+                  : "bg-[#111726] text-slate-400 hover:text-white border border-white/[0.08] hover:border-white/[0.15]"
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
+        </div>
+
+        {/* Project Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <AnimatePresence mode="popLayout">
+            {filteredProjects.map((project, idx) => {
+              const isFirstFeatured = filteredProjects.length % 2 !== 0 && idx === 0 && activeFilter === "all";
+              return (
+                <motion.div
+                  layout
+                  key={project.id}
+                  initial={{ opacity: 0, y: 25 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, delay: idx * 0.08 }}
+                  className={`rounded-2xl border border-white/[0.08] bg-[#0c101d]/90 backdrop-blur-md p-6 sm:p-8 flex flex-col justify-between hover:border-purple-500/30 transition-all duration-300 group shadow-sm ${
+                    isFirstFeatured ? "lg:col-span-2 bg-gradient-to-br from-[#0e1424] via-[#0c101d] to-[#0c101d] border-purple-500/20" : ""
+                  }`}
+                >
+                  <div>
+                    {/* Top Tag & Category */}
+                    <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                      <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                        {project.category}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {project.github && (
+                          <a
+                            href={project.github}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`View ${project.title} on GitHub`}
+                            className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-slate-400 hover:text-white border border-white/[0.08] transition-colors"
+                            title="GitHub Repository"
+                          >
+                            <Github className="w-4 h-4" />
+                          </a>
+                        )}
+                        {project.liveDemo && (
+                          <a
+                            href={project.liveDemo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Visit live demo for ${project.title}`}
+                            className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-slate-400 hover:text-purple-300 border border-white/[0.08] transition-colors"
+                            title="Live Demo / Details"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title & Subtitle */}
+                    <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-purple-300 transition-colors mb-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-slate-400 font-mono text-xs mb-4">
+                      {project.subtitle}
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                      {project.description}
+                    </p>
+
+                    {/* Key Features Bullet Points */}
+                    <div className="mb-6">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 block mb-2.5">
+                        Key Features & Architecture:
+                      </span>
+                      <ul className="space-y-2">
+                        {project.highlights.map((feat, fIdx) => (
+                          <li
+                            key={fIdx}
+                            className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Technology Badges & Action Row */}
+                  <div className="pt-5 border-t border-white/[0.06] mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.technologies.map((t) => (
+                        <span
+                          key={t}
+                          className="px-2 py-0.5 text-xs font-mono rounded bg-[#131929] border border-white/[0.06] text-slate-300"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <a
+                      href={project.github || personalInfo.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-300 hover:text-purple-200 transition-colors shrink-0 group/link"
+                    >
+                      <span>Explore Repository</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                    </a>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
     </section>
